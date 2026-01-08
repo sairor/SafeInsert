@@ -123,6 +123,21 @@ const Store = {
         return { total: monthIncome, limitSafe, percent: (monthIncome / limitSafe) * 100 };
     },
 
+    getAccountBalance(accountId) {
+        const account = this.data.accounts.find(a => a.id === accountId);
+        if (!account) return 0;
+
+        const income = this.data.transactions
+            .filter(t => t.accountId === accountId && t.type === 'income')
+            .reduce((acc, t) => acc + t.amount, 0);
+
+        const expenses = this.data.transactions
+            .filter(t => t.accountId === accountId && t.type === 'expense')
+            .reduce((acc, t) => acc + t.amount, 0);
+
+        return (account.initialBalance || 0) + income - expenses;
+    },
+
     addTransaction(t) {
         t.id = crypto.randomUUID();
         t.createdAt = new Date().toISOString();
@@ -531,9 +546,8 @@ const Views = {
                         <span class="block text-gray-400 uppercase font-bold text-[10px]">Saldo Inicial (Ano)</span>
                         <span class="font-bold text-gray-700 text-sm">${Store.formatCurrency(a.initialBalance || 0)}</span>
                     </div>
-                     <div>
                         <span class="block text-gray-400 uppercase font-bold text-[10px]">Saldo Atual</span>
-                        <span class="font-bold text-green-600 text-sm">--</span>
+                        <span class="font-bold text-green-600 text-sm">${Store.formatCurrency(Store.getAccountBalance(a.id))}</span>
                     </div>
                 </div>
 
@@ -1002,7 +1016,60 @@ const ui = {
                     </div>
                     <button type="submit" class="w-full bg-blue-500 text-white p-4 rounded-xl font-bold text-lg mt-4 shadow-lg shadow-blue-200">Salvar Conta</button>
                 </form>
+                </form>
              `;
+        } else if (type === 'manual') {
+            content.innerHTML = `
+                <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0">
+                    <h3 class="font-bold">Manual de Uso</h3>
+                    <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="p-6 bg-gray-50/50 h-[80vh] overflow-y-auto">
+                    <div class="space-y-6">
+                        
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <h4 class="font-bold text-blue-600 flex items-center gap-2 mb-2"><i data-lucide="briefcase" class="w-4 h-4"></i> Trabalho</h4>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                Use esta aba para o <strong>dia a dia</strong>. Lance suas vendas (entradas) e custos operacionais (gasolina, mercadoria, etc).
+                                <br><br>
+                                Aqui você acompanha seu <strong>Saldo do Dia</strong> para saber exatamente quanto ganhou líquido hoje.
+                            </p>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <h4 class="font-bold text-blue-600 flex items-center gap-2 mb-2"><i data-lucide="building-2" class="w-4 h-4"></i> Contas (MEI)</h4>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                Gerencie suas contas MEI. O sistema monitora dois limites importantes para você não estourar:
+                                <ul class="list-disc pl-4 mt-2 space-y-1">
+                                    <li><strong>Limite Anual (R$ 81k)</strong>: O teto obrigatório do MEI.</li>
+                                    <li><strong>Limite Mensal (R$ 6.75k)</strong>: Uma referência para você manter a média segura e não ultrapassar o anual.</li>
+                                </ul>
+                            </p>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <h4 class="font-bold text-blue-600 flex items-center gap-2 mb-2"><i data-lucide="home" class="w-4 h-4"></i> Casa</h4>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                Controle suas <strong>despesas fixas pessoais</strong> (Aluguel, Luz, Internet). 
+                                Isso ajuda a separar o custo da empresa do custo de vida pessoal.
+                            </p>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <h4 class="font-bold text-blue-600 flex items-center gap-2 mb-2"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Relatórios</h4>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                A visão geral do seu negócio.
+                                <ul class="list-disc pl-4 mt-2 space-y-1">
+                                    <li><strong>Lucro Líquido</strong>: O que sobrou do trabalho.</li>
+                                    <li><strong>Saldo Livre</strong>: Lucro do trabalho MENOS os custos de casa. É o dinheiro que realmente sobra para você.</li>
+                                </ul>
+                            </p>
+                        </div>
+
+                    </div>
+                    <button onclick="ui.openModal('settings')" class="w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-bold text-sm mt-6">Voltar</button>
+                </div>
+            `;
         } else if (type === 'settings') {
             content.innerHTML = `
                 <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0">
@@ -1010,22 +1077,28 @@ const ui = {
                     <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
                 <div class="p-6 bg-gray-50/50">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Dados & Backup</h4>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Ajuda & Dados</h4>
                     <div class="space-y-3">
+                         <button onclick="ui.openModal('manual')" class="w-full flex items-center justify-between bg-white border border-blue-100 p-4 rounded-xl font-medium active:scale-95 transition-transform shadow-sm relative overflow-hidden group">
+                             <div class="absolute inset-0 bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <span class="flex items-center gap-3 relative z-10"><i data-lucide="book-open" class="text-blue-500"></i> Manual de Uso</span>
+                            <i data-lucide="chevron-right" class="text-blue-300 w-4 h-4 relative z-10"></i>
+                        </button>
+                    
                          <button onclick="Actions.downloadBackup()" class="w-full flex items-center justify-between bg-white border border-gray-200 p-4 rounded-xl font-medium active:scale-95 transition-transform shadow-sm">
-                            <span class="flex items-center gap-3"><i data-lucide="download" class="text-blue-500"></i> Baixar Backup</span>
+                            <span class="flex items-center gap-3"><i data-lucide="download" class="text-gray-500"></i> Baixar Backup</span>
                             <i data-lucide="chevron-right" class="text-gray-300 w-4 h-4"></i>
                         </button>
                         
                         <div class="relative">
                             <input onchange="Actions.processUpload(event)" type="file" id="file-upload" accept=".json" class="hidden">
                             <button onclick="Actions.triggerUpload()" class="w-full flex items-center justify-between bg-white border border-gray-200 p-4 rounded-xl font-medium active:scale-95 transition-transform shadow-sm">
-                                <span class="flex items-center gap-3"><i data-lucide="upload" class="text-green-500"></i> Restaurar Backup</span>
+                                <span class="flex items-center gap-3"><i data-lucide="upload" class="text-gray-500"></i> Restaurar Backup</span>
                                 <i data-lucide="chevron-right" class="text-gray-300 w-4 h-4"></i>
                             </button>
                         </div>
 
-                        <button onclick="Actions.askReset()" class="w-full flex items-center justify-between bg-white border border-red-100 p-4 rounded-xl font-medium mt-4 text-red-600 active:bg-red-50 active:scale-95 transition-transform shadow-sm">
+                        <button onclick="ui.openModal('reset_confirm')" class="w-full flex items-center justify-between bg-white border border-red-100 p-4 rounded-xl font-medium mt-4 text-red-600 active:bg-red-50 active:scale-95 transition-transform shadow-sm">
                             <span class="flex items-center gap-3"><i data-lucide="trash-2"></i> Resetar Aplicativo</span>
                             <i data-lucide="alert-triangle" class="w-4 h-4"></i>
                         </button>
