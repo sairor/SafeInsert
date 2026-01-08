@@ -1,0 +1,16 @@
+{
+    "name": "Safe-Insert",
+    "short_name": "Safe",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#007AFF",
+    "icons": [
+        {
+            "src": "app_icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
