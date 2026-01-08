@@ -39,7 +39,6 @@ const Store = {
         } else {
             // Default Accounts
             this.data.accounts = [
-                { id: 'mei-1', name: 'MEI Principal', type: 'mei', initialBalance: 0 },
                 { id: 'cash-1', name: 'Dinheiro (Não Fiscal)', type: 'cash', initialBalance: 0 }
             ];
             this.save();
@@ -878,5 +877,14 @@ const ui = {
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
     Store.init();
-    router.navigate('work');
+
+    // Onboarding Check
+    const hasMei = Store.data.accounts.some(a => a.type === 'mei');
+    if (!hasMei) {
+        router.navigate('mei');
+        // Pequeno delay para garantir renderização antes do alert (opcional, mas bom UX no vanilla)
+        setTimeout(() => alert('Bem-vindo ao Safe-Insert! 🚀\n\nPara começar, por favor cadastre sua conta MEI principal.'), 100);
+    } else {
+        router.navigate('work');
+    }
 });
