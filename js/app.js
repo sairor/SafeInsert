@@ -545,36 +545,43 @@ const Views = {
             <div class="p-4 pb-24">
                 <h2 class="text-2xl font-bold mb-6 text-gray-900">Gerenciar Contas & MEI</h2>
                 
-                <form onsubmit="Actions.createAccount(event)" class="bg-white p-5 rounded-xl shadow-sm border border-blue-200 mb-8 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-full -mr-10 -mt-10 blur-xl"></div>
-                    
-                    <p class="text-sm font-bold mb-4 text-blue-700 flex items-center gap-2 relative z-10"><i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conta</p>
-                    
-                    <div class="space-y-4 relative z-10">
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nome da Conta</label>
-                            <input id="inp-acc-name" type="text" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm font-semibold outline-none focus:border-blue-500 transition-colors" placeholder="Ex: MEI Consultoria" required>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">CNPJ (Opcional)</label>
-                                <input id="inp-acc-cnpj" type="text" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="00.000...">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Saldo Inicial</label>
-                                <input id="inp-acc-initial" type="number" step="0.01" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="R$ 0,00">
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Descrição</label>
-                            <textarea id="inp-acc-desc" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" rows="2" placeholder="Ex: Conta principal para recebimento de serviços..."></textarea>
-                        </div>
-                    </div>
+                ${(() => {
+                const hasMei = Store.data.accounts.some(a => a.type === 'mei');
+                if (hasMei) return '';
 
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-4 rounded-xl font-bold text-sm mt-6 shadow-lg shadow-blue-200 transition-all transform active:scale-95">Cadastrar Conta</button>
-                </form>
+                return `
+                    <form onsubmit="Actions.createAccount(event)" class="bg-white p-5 rounded-xl shadow-sm border border-blue-200 mb-8 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-full -mr-10 -mt-10 blur-xl"></div>
+                        
+                        <p class="text-sm font-bold mb-4 text-blue-700 flex items-center gap-2 relative z-10"><i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conta</p>
+                        
+                        <div class="space-y-4 relative z-10">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nome da Conta</label>
+                                <input id="inp-acc-name" type="text" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm font-semibold outline-none focus:border-blue-500 transition-colors" placeholder="Ex: MEI Consultoria" required>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">CNPJ (Opcional)</label>
+                                    <input id="inp-acc-cnpj" type="text" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="00.000...">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Saldo Inicial</label>
+                                    <input id="inp-acc-initial" type="number" step="0.01" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="R$ 0,00">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Descrição</label>
+                                <textarea id="inp-acc-desc" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" rows="2" placeholder="Ex: Conta principal para recebimento de serviços..."></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-4 rounded-xl font-bold text-sm mt-6 shadow-lg shadow-blue-200 transition-all transform active:scale-95">Cadastrar Conta</button>
+                    </form>
+                    `;
+            })()}
 
                 <h3 class="font-bold text-gray-400 text-xs uppercase mb-4 pl-1">Minhas Contas</h3>
                 <div class="space-y-2">
@@ -892,12 +899,15 @@ const ui = {
                 </div>
             `).join('');
 
+            const hasMei = Store.data.accounts.some(a => a.type === 'mei');
+
             content.innerHTML = `
                 <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0">
                     <h3 class="font-bold">Gerenciar Contas</h3>
                     <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
                 <div class="p-4 bg-gray-50/50 h-[80vh] overflow-y-auto">
+                    ${!hasMei ? `
                     <form onsubmit="Actions.createAccount(event)" class="bg-white p-4 rounded-xl shadow-sm border border-blue-100 mb-6">
                         <p class="text-sm font-bold mb-3 text-blue-600 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conta MEI</p>
                         
@@ -926,6 +936,7 @@ const ui = {
 
                         <button type="submit" class="w-full bg-blue-500 text-white py-3 rounded-lg font-bold text-sm mt-4 shadow-lg shadow-blue-200">Criar Conta</button>
                     </form>
+                    ` : ''}
 
                     <h4 class="font-bold text-gray-400 text-xs uppercase mb-2 ml-1">Contas Existentes</h4>
                     ${list}
