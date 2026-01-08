@@ -984,6 +984,27 @@ const ui = {
                     </div>
                 </div>
             `;
+        } else if (type === 'reset_confirm') {
+            content.innerHTML = `
+                <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0">
+                    <h3 class="font-bold text-red-600">Resetar Tudo</h3>
+                    <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="p-6 bg-gray-50/50">
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-100 mb-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
+                            <h4 class="font-bold text-red-700">Atenção!</h4>
+                        </div>
+                        <p class="text-sm text-red-600">Isso apagará todas as contas e transações salvas neste dispositivo.</p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                         <button onclick="Store.clearAllData()" class="w-full bg-red-600 text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-red-200 active:scale-95 transition-transform">Sim, Apagar Tudo</button>
+                         <button onclick="ui.closeModal()" class="w-full bg-white border border-gray-200 text-gray-700 p-4 rounded-xl font-bold text-lg active:scale-95 transition-transform">Cancelar</button>
+                    </div>
+                </div>
+            `;
         }
         lucide.createIcons();
     },

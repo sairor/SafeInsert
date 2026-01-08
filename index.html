@@ -79,6 +79,11 @@
 </head>
 
 <body class="h-screen flex flex-col overflow-hidden">
+    <!-- WATERMARK -->
+    <div
+        class="fixed top-0 left-0 w-full text-center pointer-events-none z-[60] bg-white/80 backdrop-blur-md border-b border-gray-200 pt-[env(safe-area-inset-top)]">
+        <p class="text-[10px] font-mono text-gray-400 py-1">Safe-Insert Alpha 1.0.0</p>
+    </div>
 
     <!-- APP CONTENT AREA -->
     <main id="app-content" class="flex-1 overflow-y-auto pb-24 px-4 pt-4 hide-scrollbar relative">
