@@ -556,6 +556,28 @@ const Views = {
                 <div class="space-y-2">
                     ${list}
                 </div>
+
+                <!-- Data Management Zone -->
+                <div class="mt-12 pt-8 border-t border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-4">Dados & Backup</h3>
+                    
+                    <div class="grid grid-cols-1 gap-3">
+                        <button onclick="Actions.downloadBackup()" class="flex items-center justify-center gap-2 bg-slate-800 text-white p-3 rounded-xl font-medium active:scale-95 transition-transform">
+                            <i data-lucide="download" class="w-5 h-5"></i> Baixar Backup
+                        </button>
+                        
+                        <div class="relative">
+                            <input onchange="Actions.processUpload(event)" type="file" id="file-upload" accept=".json" class="hidden">
+                            <button onclick="Actions.triggerUpload()" class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 p-3 rounded-xl font-medium active:bg-gray-50 active:scale-95 transition-all">
+                                <i data-lucide="upload" class="w-5 h-5"></i> Restaurar Backup
+                            </button>
+                        </div>
+
+                        <button onclick="Actions.askReset()" class="flex items-center justify-center gap-2 bg-red-50 text-red-500 border border-red-100 p-3 rounded-xl font-medium mt-4 active:bg-red-100 active:scale-95 transition-all">
+                            <i data-lucide="alert-triangle" class="w-5 h-5"></i> Limpar Tudo (Reset)
+                        </button>
+                    </div>
+                </div>
             </div>
         `;
     }
