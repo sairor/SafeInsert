@@ -262,7 +262,13 @@ const Views = {
         }).join('');
 
         return `
-             <!-- Header Data -->
+            <!-- Header Top -->
+            <div class="flex justify-between items-center mb-4 px-2">
+                <h1 class="text-xl font-bold text-gray-800">Trabalho</h1>
+                <button onclick="ui.openModal('settings')" class="p-2 bg-white border border-gray-200 rounded-full text-gray-600 shadow-sm active:scale-95 transition-transform"><i data-lucide="settings" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- Date Nav -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4 flex items-center justify-between sticky top-0 z-10">
                 <button onclick="Actions.changeDate(-1)" class="p-2 bg-gray-50 rounded-full text-blue-500"><i data-lucide="chevron-left"></i></button>
                 <div class="text-center">
@@ -555,28 +561,6 @@ const Views = {
                 <h3 class="font-bold text-gray-400 text-xs uppercase mb-4 pl-1">Minhas Contas</h3>
                 <div class="space-y-2">
                     ${list}
-                </div>
-
-                <!-- Data Management Zone -->
-                <div class="mt-12 pt-8 border-t border-gray-200">
-                    <h3 class="font-bold text-gray-900 mb-4">Dados & Backup</h3>
-                    
-                    <div class="grid grid-cols-1 gap-3">
-                        <button onclick="Actions.downloadBackup()" class="flex items-center justify-center gap-2 bg-slate-800 text-white p-3 rounded-xl font-medium active:scale-95 transition-transform">
-                            <i data-lucide="download" class="w-5 h-5"></i> Baixar Backup
-                        </button>
-                        
-                        <div class="relative">
-                            <input onchange="Actions.processUpload(event)" type="file" id="file-upload" accept=".json" class="hidden">
-                            <button onclick="Actions.triggerUpload()" class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 p-3 rounded-xl font-medium active:bg-gray-50 active:scale-95 transition-all">
-                                <i data-lucide="upload" class="w-5 h-5"></i> Restaurar Backup
-                            </button>
-                        </div>
-
-                        <button onclick="Actions.askReset()" class="flex items-center justify-center gap-2 bg-red-50 text-red-500 border border-red-100 p-3 rounded-xl font-medium mt-4 active:bg-red-100 active:scale-95 transition-all">
-                            <i data-lucide="alert-triangle" class="w-5 h-5"></i> Limpar Tudo (Reset)
-                        </button>
-                    </div>
                 </div>
             </div>
         `;
@@ -967,6 +951,39 @@ const ui = {
                     <button type="submit" class="w-full bg-blue-500 text-white p-4 rounded-xl font-bold text-lg mt-4 shadow-lg shadow-blue-200">Salvar Conta</button>
                 </form>
              `;
+        } else if (type === 'settings') {
+            content.innerHTML = `
+                <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0">
+                    <h3 class="font-bold">Configurações</h3>
+                    <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="p-6 bg-gray-50/50">
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Dados & Backup</h4>
+                    <div class="space-y-3">
+                         <button onclick="Actions.downloadBackup()" class="w-full flex items-center justify-between bg-white border border-gray-200 p-4 rounded-xl font-medium active:scale-95 transition-transform shadow-sm">
+                            <span class="flex items-center gap-3"><i data-lucide="download" class="text-blue-500"></i> Baixar Backup</span>
+                            <i data-lucide="chevron-right" class="text-gray-300 w-4 h-4"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <input onchange="Actions.processUpload(event)" type="file" id="file-upload" accept=".json" class="hidden">
+                            <button onclick="Actions.triggerUpload()" class="w-full flex items-center justify-between bg-white border border-gray-200 p-4 rounded-xl font-medium active:scale-95 transition-transform shadow-sm">
+                                <span class="flex items-center gap-3"><i data-lucide="upload" class="text-green-500"></i> Restaurar Backup</span>
+                                <i data-lucide="chevron-right" class="text-gray-300 w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <button onclick="Actions.askReset()" class="w-full flex items-center justify-between bg-white border border-red-100 p-4 rounded-xl font-medium mt-4 text-red-600 active:bg-red-50 active:scale-95 transition-transform shadow-sm">
+                            <span class="flex items-center gap-3"><i data-lucide="trash-2"></i> Resetar Aplicativo</span>
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-8 text-center">
+                        <p class="text-xs text-gray-400 font-mono">Safe-Insert Alpha 1.0.0</p>
+                    </div>
+                </div>
+            `;
         }
         lucide.createIcons();
     },
