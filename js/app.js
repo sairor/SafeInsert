@@ -175,16 +175,15 @@ const Store = {
         this.data.customCategories = ['Transporte', 'Alimentação', 'Hospedagem'];
         this.data.homeCategories = ['Água', 'Luz', 'Internet', 'Aluguel', 'Cartão de Crédito'];
         localStorage.clear();
+
         // Force re-init to set defaults
         this.init();
-        // Save handled by init or manual save? init checks storage, if empty sets defaults. 
-        // But we want to persist the empty state (only defaults).
-        // init() sets defaults if storage empty.
-        // So we clear storage, then init() will set defaults.
-        // But init load from storage.
-        // Let's explicitly save the defaults after init.
         this.save();
-    }
+
+        alert('Todas as informações foram apagadas com sucesso.');
+        window.location.reload();
+    },
+
 };
 
 // ==========================================
@@ -232,34 +231,7 @@ const Views = {
             `}).join('');
 
         // Account Limits Status (Only MEI)
-        const meiAccounts = Store.data.accounts.filter(a => a.type === 'mei');
-        const limitsHtml = meiAccounts.map(acc => {
-            const status = Store.getAccountLimitStatus(acc.id);
-            if (!status) return '';
 
-            let barColor = 'bg-blue-500';
-            if (status.status === 'warning') barColor = 'bg-yellow-400';
-            if (status.status === 'critical') barColor = 'bg-red-500';
-
-            const remaining = status.limitSafe - status.total;
-
-            return `
-            <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 mb-2">
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-xs font-bold text-gray-600">${acc.name}</span>
-                    <span class="text-xs font-medium text-gray-400">${Store.formatCurrency(status.total)} / 81k</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-2 mb-1 overflow-hidden">
-                    <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${Math.min(status.percent, 100)}%"></div>
-                </div>
-                <div class="text-right">
-                    <span class="text-[10px] ${remaining > 0 ? 'text-gray-400' : 'text-red-500 font-bold'}">
-                        ${remaining > 0 ? `Resta: ${Store.formatCurrency(remaining)}` : 'Limite Excedido!'}
-                    </span>
-                </div>
-            </div>
-            `;
-        }).join('');
 
         return `
             <!-- Header Top -->
@@ -267,6 +239,8 @@ const Views = {
                 <h1 class="text-xl font-bold text-gray-800">Trabalho</h1>
                 <button onclick="ui.openModal('settings')" class="p-2 bg-white border border-gray-200 rounded-full text-gray-600 shadow-sm active:scale-95 transition-transform"><i data-lucide="settings" class="w-5 h-5"></i></button>
             </div>
+
+
 
             <!-- Date Nav -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4 flex items-center justify-between sticky top-0 z-10">
@@ -278,10 +252,7 @@ const Views = {
                 <button onclick="Actions.changeDate(1)" class="p-2 bg-gray-50 rounded-full text-blue-500"><i data-lucide="chevron-right"></i></button>
             </div>
 
-            <!-- MEI Limits -->
-            <div class="mb-4">
-                ${limitsHtml}
-            </div>
+
 
             <!-- Resumo Dia -->
             <div class="bg-white rounded-xl p-6 shadow-sm mb-6 text-center border-t-4 ${balance >= 0 ? 'border-green-500' : 'border-red-500'}">
@@ -476,15 +447,19 @@ const Views = {
             let limitInfo = '';
 
             if (status && a.type === 'mei') {
-                let barColor = 'bg-blue-500';
-                if (status.status === 'warning') barColor = 'bg-yellow-400';
-                if (status.status === 'critical') barColor = 'bg-red-500';
+                let barColor = 'bg-green-500';
+                if (status.percent >= 30) barColor = 'bg-yellow-400';
+                if (status.percent >= 60) barColor = 'bg-orange-500';
+                if (status.percent >= 90) barColor = 'bg-red-500';
 
                 limitInfo = `
                     <div class="mt-2 text-xs">
                          <div class="flex justify-between items-center mb-1">
                             <span class="text-gray-500">Progresso Anual</span>
-                            <span class="text-gray-700 font-bold">${Store.formatCurrency(status.total)} / 81k</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold bg-gray-50 px-1.5 py-0.5 rounded text-gray-500">${status.percent.toFixed(1)}%</span>
+                                <span class="text-gray-700 font-bold">${Store.formatCurrency(status.total)} / 81k</span>
+                            </div>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-1.5 mb-1 overflow-hidden">
                             <div class="${barColor} h-1.5 rounded-full transition-all" style="width: ${Math.min(status.percent, 100)}%"></div>
@@ -666,6 +641,28 @@ const Actions = {
         const accountId = document.getElementById('inp-account').value;
 
         if (!amount || !accountId) return;
+
+        // Check for MEI Limit Warning
+        const account = Store.data.accounts.find(a => a.id === accountId);
+        if (account && account.type === 'mei') {
+            const status = Store.getAccountLimitStatus(accountId);
+            // Simular novo total
+            const newTotal = status.total + amount;
+            const newPercent = (newTotal / status.limitSafe) * 100;
+
+            if (newPercent >= 75) {
+                const confirmMsg = `
+ATENÇÃO: ALERTA DE LIMITE MEI!
+
+Com essa entrada, a conta "${account.name}" atingirá ${newPercent.toFixed(1)}% do limite anual de R$ 81.000,00.
+
+Considere lançar esta receita em outra conta ou Pessoa Física se possível.
+
+Deseja continuar mesmo assim?
+                `;
+                if (!confirm(confirmMsg)) return;
+            }
+        }
 
         Store.addTransaction({
             type: 'income',
