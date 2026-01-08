@@ -101,6 +101,28 @@ const Store = {
         return { total, limitSafe, limitMax, status, percent: (total / limitSafe) * 100 };
     },
 
+    getAccountMonthlyStatus(accountId) {
+        const account = this.data.accounts.find(a => a.id === accountId);
+        if (!account || account.type !== 'mei') return null;
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        const monthIncome = this.data.transactions
+            .filter(t =>
+                t.accountId === accountId &&
+                t.type === 'income' &&
+                new Date(t.date).getMonth() === currentMonth &&
+                new Date(t.date).getFullYear() === currentYear
+            )
+            .reduce((acc, t) => acc + t.amount, 0);
+
+        const limitSafe = 6750; // 81k / 12
+
+        return { total: monthIncome, limitSafe, percent: (monthIncome / limitSafe) * 100 };
+    },
+
     addTransaction(t) {
         t.id = crypto.randomUUID();
         t.createdAt = new Date().toISOString();
@@ -443,26 +465,47 @@ const Views = {
     mei() {
         // Recalcular status para garantir dados frescos
         const list = Store.data.accounts.map(a => {
-            const status = Store.getAccountLimitStatus(a.id);
+            const annualStatus = Store.getAccountLimitStatus(a.id);
+            const monthlyStatus = Store.getAccountMonthlyStatus(a.id);
             let limitInfo = '';
 
-            if (status && a.type === 'mei') {
-                let barColor = 'bg-green-500';
-                if (status.percent >= 30) barColor = 'bg-yellow-400';
-                if (status.percent >= 60) barColor = 'bg-orange-500';
-                if (status.percent >= 90) barColor = 'bg-red-500';
+            if (a.type === 'mei' && annualStatus && monthlyStatus) {
+                // Helper para cor da barra
+                const getBarColor = (p) => {
+                    if (p >= 90) return 'bg-red-500';
+                    if (p >= 60) return 'bg-orange-500';
+                    if (p >= 30) return 'bg-yellow-400';
+                    return 'bg-green-500';
+                };
 
                 limitInfo = `
-                    <div class="mt-2 text-xs">
-                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-gray-500">Progresso Anual</span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold bg-gray-50 px-1.5 py-0.5 rounded text-gray-500">${status.percent.toFixed(1)}%</span>
-                                <span class="text-gray-700 font-bold">${Store.formatCurrency(status.total)} / 81k</span>
+                    <div class="mt-3 space-y-3">
+                        <!-- Anual -->
+                        <div>
+                             <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Ano (81k)</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold bg-gray-50 px-1.5 py-0.5 rounded text-gray-500">${annualStatus.percent.toFixed(1)}%</span>
+                                    <span class="text-xs font-bold text-gray-700">${Store.formatCurrency(annualStatus.total)}</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                <div class="${getBarColor(annualStatus.percent)} h-2 rounded-full transition-all" style="width: ${Math.min(annualStatus.percent, 100)}%"></div>
                             </div>
                         </div>
-                        <div class="w-full bg-gray-100 rounded-full h-1.5 mb-1 overflow-hidden">
-                            <div class="${barColor} h-1.5 rounded-full transition-all" style="width: ${Math.min(status.percent, 100)}%"></div>
+
+                        <!-- Mensal -->
+                        <div>
+                             <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Mês (6.75k)</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold bg-gray-50 px-1.5 py-0.5 rounded text-gray-500">${monthlyStatus.percent.toFixed(1)}%</span>
+                                    <span class="text-xs font-bold text-gray-700">${Store.formatCurrency(monthlyStatus.total)}</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                <div class="${getBarColor(monthlyStatus.percent)} h-2 rounded-full transition-all" style="width: ${Math.min(monthlyStatus.percent, 100)}%"></div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -642,21 +685,21 @@ const Actions = {
 
         if (!amount || !accountId) return;
 
-        // Check for MEI Limit Warning
+        // Check for MEI Limit Warning (MONTHLY)
         const account = Store.data.accounts.find(a => a.id === accountId);
         if (account && account.type === 'mei') {
-            const status = Store.getAccountLimitStatus(accountId);
+            const status = Store.getAccountMonthlyStatus(accountId);
             // Simular novo total
             const newTotal = status.total + amount;
             const newPercent = (newTotal / status.limitSafe) * 100;
 
             if (newPercent >= 75) {
                 const confirmMsg = `
-ATENÇÃO: ALERTA DE LIMITE MEI!
+ATENÇÃO: ALERTA DE LIMITE MENSAL MEI!
 
-Com essa entrada, a conta "${account.name}" atingirá ${newPercent.toFixed(1)}% do limite anual de R$ 81.000,00.
+Com essa entrada, a conta "${account.name}" atingirá ${newPercent.toFixed(1)}% do limite mensal recomendado de R$ 6.750,00.
 
-Considere lançar esta receita em outra conta ou Pessoa Física se possível.
+Considere lançar esta receita em outra conta ou Pessoa Física se possível para evitar estourar a média mensal.
 
 Deseja continuar mesmo assim?
                 `;
@@ -1022,8 +1065,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const hasMei = Store.data.accounts.some(a => a.type === 'mei');
     if (!hasMei) {
         router.navigate('mei');
-        // Pequeno delay para garantir renderização antes do alert (opcional, mas bom UX no vanilla)
-        setTimeout(() => alert('Bem-vindo ao Safe-Insert! 🚀\n\nPara começar, por favor cadastre sua conta MEI principal.'), 100);
+        // Open modal automatically for better onboarding
+        setTimeout(() => ui.openModal('accounts'), 100);
     } else {
         router.navigate('work');
     }
