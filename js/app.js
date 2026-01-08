@@ -278,6 +278,7 @@ const Store = {
     clearAllData() {
         this.data.transactions = [];
         this.data.accounts = [];
+        this.data.recurring = [];
         this.data.customCategories = ['Transporte', 'Alimentação', 'Hospedagem'];
         this.data.homeCategories = ['Água', 'Luz', 'Internet', 'Aluguel', 'Cartão de Crédito'];
         localStorage.clear();
@@ -697,7 +698,7 @@ const Views = {
                 <h2 class="text-2xl font-bold mb-6 text-gray-900">Gerenciar Contas & MEI</h2>
                 
                 <div class="mb-8">
-                   <form onsubmit="Actions.createAccount(event)" class="bg-white p-5 rounded-xl shadow-sm border border-blue-200 relative overflow-hidden">
+                   <form onsubmit="Actions.createAccount(event, false)" class="bg-white p-5 rounded-xl shadow-sm border border-blue-200 relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-blue-50 rounded-full -mr-10 -mt-10 blur-xl"></div>
                         
                         <p class="text-sm font-bold mb-4 text-blue-700 flex items-center gap-2 relative z-10"><i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conta</p>
@@ -825,7 +826,7 @@ const Actions = {
         }
     },
 
-    createAccount(e) {
+    createAccount(e, openModal = false) {
         e.preventDefault();
         const formData = new FormData(e.target);
         const name = formData.get('name');
@@ -842,7 +843,9 @@ const Actions = {
             initialBalance: initial,
             type: 'mei'
         });
-        ui.openModal('accounts');
+        if (openModal) {
+            ui.openModal('accounts');
+        }
     },
 
     deleteAccount(id) {
@@ -1183,7 +1186,7 @@ const ui = {
                     <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
                 <div class="p-4 bg-gray-50/50 h-[80vh] overflow-y-auto">
-                    <form onsubmit="Actions.createAccount(event)" class="bg-white p-4 rounded-xl shadow-sm border border-blue-100 mb-6">
+                    <form onsubmit="Actions.createAccount(event, true)" class="bg-white p-4 rounded-xl shadow-sm border border-blue-100 mb-6">
                         <p class="text-sm font-bold mb-3 text-blue-600 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conta MEI</p>
                         
                 <div class="space-y-3">
@@ -1252,12 +1255,12 @@ const ui = {
     </form>
 `;
         } else if (type === 'home_expense') {
-            const cats = Store.data.homeCategories.map(c => `< option value = "${c}" > ${c}</option > `).join('');
+            const cats = Store.data.homeCategories.map(c => `<option value="${c}">${c}</option>`).join('');
             content.innerHTML = `
-    < div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0 z-50" >
+                <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0 z-50">
                     <h3 class="font-bold text-gray-800">Nova Conta / Despesa</h3>
                     <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </div >
+                </div>
     <form onsubmit="Actions.submitHomeExpense(event)" class="p-6 space-y-5">
 
         <!-- Tabs -->
@@ -1348,20 +1351,20 @@ const ui = {
             const list = Store.data.recurring.length === 0
                 ? '<p class="text-center text-gray-400 py-8 italic">Nenhuma conta recorrente cadastrada.</p>'
                 : Store.data.recurring.map(r => `
-    < div class="bg-white p-4 rounded-xl border border-gray-100 flex justify-between items-center shadow-sm mb-2" >
+                <div class="bg-white p-4 rounded-xl border border-gray-100 flex justify-between items-center shadow-sm mb-2">
                     <div>
                         <p class="font-bold text-gray-800">${r.title}</p>
                         <p class="text-xs text-gray-500">Todo dia ${r.day} • <span class="text-blue-600 font-bold">${Store.formatCurrency(r.amount)}</span></p>
                     </div>
                     <button onclick="Actions.deleteRecurring('${r.id}')" class="text-red-500 bg-red-50 p-2 rounded-lg active:scale-95 transition-transform"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                </div >
+                </div>
     `).join('');
 
             content.innerHTML = `
-    < div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0" >
+                <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0">
                     <h3 class="font-bold">Contas Recorrentes</h3>
                     <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </div >
+                </div>
     <div class="p-6 bg-gray-50/50 h-[60vh] overflow-y-auto">
         ${list}
 
@@ -1377,10 +1380,10 @@ const ui = {
             if (!t) return;
 
             content.innerHTML = `
-    < div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0" >
+                <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0">
                     <h3 class="font-bold text-orange-600">Definir Valor</h3>
                     <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </div >
+                </div>
     <div class="p-6">
         <div class="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-6 text-center">
             <p class="text-xs uppercase font-bold text-orange-400 mb-1">Conta referente a</p>
@@ -1399,10 +1402,10 @@ const ui = {
 `;
         } else if (type === 'manual') {
             content.innerHTML = `
-    < div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0" >
+                <div class="bg-white px-4 py-3 flex justify-between items-center border-b sticky top-0">
                     <h3 class="font-bold">Manual de Uso</h3>
                     <button onclick="ui.closeModal()" class="bg-gray-100 p-1 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </div >
+                </div>
     <div class="p-6 bg-gray-50/50 h-[80vh] overflow-y-auto">
         <div class="space-y-6">
 
