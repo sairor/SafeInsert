@@ -558,23 +558,23 @@ const Views = {
                         <div class="space-y-4 relative z-10">
                             <div>
                                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nome da Conta</label>
-                                <input id="inp-acc-name" type="text" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm font-semibold outline-none focus:border-blue-500 transition-colors" placeholder="Ex: MEI Consultoria" required>
+                                <input name="name" id="inp-acc-name" type="text" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm font-semibold outline-none focus:border-blue-500 transition-colors" placeholder="Ex: MEI Consultoria" required>
                             </div>
                             
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">CNPJ (Opcional)</label>
-                                    <input id="inp-acc-cnpj" type="text" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="00.000...">
+                                    <input name="cnpj" id="inp-acc-cnpj" type="text" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="00.000...">
                                 </div>
                                 <div>
                                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Saldo Inicial</label>
-                                    <input id="inp-acc-initial" type="number" step="0.01" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="R$ 0,00">
+                                    <input name="initial" id="inp-acc-initial" type="number" step="0.01" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" placeholder="R$ 0,00">
                                 </div>
                             </div>
                             
                             <div>
                                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Descrição</label>
-                                <textarea id="inp-acc-desc" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" rows="2" placeholder="Ex: Conta principal para recebimento de serviços..."></textarea>
+                                <textarea name="description" id="inp-acc-desc" class="w-full bg-gray-50/50 focus:bg-white p-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-blue-500 transition-colors" rows="2" placeholder="Ex: Conta principal para recebimento de serviços..."></textarea>
                             </div>
                         </div>
 
@@ -660,10 +660,11 @@ const Actions = {
 
     createAccount(e) {
         e.preventDefault();
-        const name = document.getElementById('inp-acc-name').value;
-        const cnpj = document.getElementById('inp-acc-cnpj').value;
-        const description = document.getElementById('inp-acc-desc').value;
-        const initial = parseFloat(document.getElementById('inp-acc-initial').value || 0);
+        const formData = new FormData(e.target);
+        const name = formData.get('name');
+        const cnpj = formData.get('cnpj');
+        const description = formData.get('description');
+        const initial = parseFloat(formData.get('initial') || 0);
 
         if (!name) return;
 
@@ -911,30 +912,30 @@ const ui = {
                     <form onsubmit="Actions.createAccount(event)" class="bg-white p-4 rounded-xl shadow-sm border border-blue-100 mb-6">
                         <p class="text-sm font-bold mb-3 text-blue-600 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conta MEI</p>
                         
-                        <div class="space-y-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase">Nome da Conta</label>
-                                <input id="inp-acc-name" type="text" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" placeholder="Ex: MEI Consultoria" required>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase">CNPJ (Opcional)</label>
-                                    <input id="inp-acc-cnpj" type="text" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" placeholder="00.000.000/0001-00">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase">Saldo Inicial (Ano)</label>
-                                    <input id="inp-acc-initial" type="number" step="0.01" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" placeholder="R$ 0,00">
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase">Descrição</label>
-                                <textarea id="inp-acc-desc" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" rows="2" placeholder="Conta principal para serviços..."></textarea>
-                            </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Nome da Conta</label>
+                        <input name="name" id="inp-acc-name-modal" type="text" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" placeholder="Ex: MEI Consultoria" required>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">CNPJ (Opcional)</label>
+                            <input name="cnpj" id="inp-acc-cnpj-modal" type="text" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" placeholder="00.000.000/0001-00">
                         </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Saldo Inicial (Ano)</label>
+                            <input name="initial" id="inp-acc-initial-modal" type="number" step="0.01" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" placeholder="R$ 0,00">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Descrição</label>
+                        <textarea name="description" id="inp-acc-desc-modal" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-sm" rows="2" placeholder="Conta principal para serviços..."></textarea>
+                    </div>
+                </div>
 
-                        <button type="submit" class="w-full bg-blue-500 text-white py-3 rounded-lg font-bold text-sm mt-4 shadow-lg shadow-blue-200">Criar Conta</button>
+                <button type="submit" class="w-full bg-blue-500 text-white py-3 rounded-lg font-bold text-sm mt-4 shadow-lg shadow-blue-200">Criar Conta</button>
                     </form>
                     ` : ''}
 
