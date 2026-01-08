@@ -149,6 +149,41 @@ const Store = {
         const end = new Date(endStr);
         end.setHours(23, 59, 59, 999);
         return d >= start && d <= end;
+    },
+
+    // Data Management
+    getBackupData() {
+        return JSON.stringify(this.data);
+    },
+
+    loadBackupData(jsonString) {
+        try {
+            const data = JSON.parse(jsonString);
+            if (!data.transactions || !data.accounts) throw new Error('Formato inválido');
+            this.data = data;
+            this.save();
+            return true;
+        } catch (e) {
+            console.error(e);
+            return false;
+        }
+    },
+
+    clearAllData() {
+        this.data.transactions = [];
+        this.data.accounts = [];
+        this.data.customCategories = ['Transporte', 'Alimentação', 'Hospedagem'];
+        this.data.homeCategories = ['Água', 'Luz', 'Internet', 'Aluguel', 'Cartão de Crédito'];
+        localStorage.clear();
+        // Force re-init to set defaults
+        this.init();
+        // Save handled by init or manual save? init checks storage, if empty sets defaults. 
+        // But we want to persist the empty state (only defaults).
+        // init() sets defaults if storage empty.
+        // So we clear storage, then init() will set defaults.
+        // But init load from storage.
+        // Let's explicitly save the defaults after init.
+        this.save();
     }
 };
 
@@ -679,6 +714,54 @@ const Actions = {
             isPaid: isPaid
         });
         ui.closeModal();
+    },
+
+    // Data Actions
+    downloadBackup() {
+        const data = Store.getBackupData();
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `safe-insert-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    },
+
+    triggerUpload() {
+        document.getElementById('file-upload').click();
+    },
+
+    processUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const success = Store.loadBackupData(e.target.result);
+            if (success) {
+                alert('Backup restaurado com sucesso!');
+                router.renderResults();
+            } else {
+                alert('Erro ao ler arquivo de backup. Verifique se é um arquivo válido.');
+            }
+        };
+        reader.readAsText(file);
+        // Reset input
+        e.target.value = '';
+    },
+
+    askReset() {
+        ui.openModal('reset_confirm');
+    },
+
+    confirmReset() {
+        Store.clearAllData();
+        ui.closeModal();
+        alert('Dados apagados e resetados para o padrão.');
+        router.renderResults();
     }
 };
 
